@@ -1,8 +1,17 @@
 import { NextResponse } from "next/server";
+import { getCurrentSession } from "@/lib/auth/session-guard";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function GET() {
   try {
+    const session = await getCurrentSession();
+    if (!session || session.role !== "funcionario") {
+      return NextResponse.json(
+        { error: "Acesso restrito à administração do condomínio." },
+        { status: 403 }
+      );
+    }
+
     const supabase = createAdminClient();
 
     // 1. Total de ocorrências
@@ -29,7 +38,11 @@ export async function GET() {
       .eq("status", "Em Andamento");
 
     if (errTotal || errPendentes || errResolvidas) {
-      console.error("Erro ao calcular métricas:", { errTotal, errPendentes, errResolvidas });
+      console.error("Erro ao calcular métricas:", {
+        errTotal,
+        errPendentes,
+        errResolvidas,
+      });
     }
 
     return NextResponse.json({
@@ -46,4 +59,3 @@ export async function GET() {
     );
   }
 }
-

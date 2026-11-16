@@ -155,6 +155,27 @@ export function useOcorrenciaDetalhe(id: string) {
     },
   });
 
+  const deleteComentario = useMutation({
+    mutationFn: async (comentarioId: string) => {
+      const res = await fetch(`/api/ocorrencias/${id}/comentarios`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comentarioId }),
+      });
+      const resData = await res.json();
+      if (!res.ok)
+        throw new Error(resData.error || "Erro ao excluir comentário.");
+      return resData;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["comentarios", id] });
+      toast.success("Comentário excluído com sucesso.");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
+
   const updateStatus = useMutation({
     mutationFn: async ({
       status,
@@ -192,6 +213,7 @@ export function useOcorrenciaDetalhe(id: string) {
     comentarios: comentariosQuery.data?.comentarios || [],
     isLoadingComentarios: comentariosQuery.isLoading,
     addComentario,
+    deleteComentario,
     updateStatus,
   };
 }

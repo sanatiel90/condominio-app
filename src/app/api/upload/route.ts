@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentSession } from "@/lib/auth/session-guard";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getCurrentSession();
+    if (!session) {
+      return NextResponse.json(
+        {
+          error:
+            "Você precisa estar conectado para realizar upload de arquivos.",
+        },
+        { status: 401 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
@@ -76,4 +88,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

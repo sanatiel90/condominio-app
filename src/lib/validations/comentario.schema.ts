@@ -10,3 +10,8 @@ export const comentarioSchema = z.object({
 
 export type ComentarioInput = z.infer<typeof comentarioSchema>;
 
+export const deleteComentarioSchema = z.object({
+  comentarioId: z.string().uuid("Identificador do comentário inválido."),
+});
+
+export type DeleteComentarioInput = z.infer<typeof deleteComentarioSchema>;

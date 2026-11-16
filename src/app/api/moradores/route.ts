@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { moradorFormSchema } from "@/lib/validations/morador.schema";
+import { getCurrentSession } from "@/lib/auth/session-guard";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getCurrentSession();
+    if (!session || session.role !== "funcionario") {
+      return NextResponse.json(
+        { error: "Acesso restrito à administração do condomínio." },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("busca")?.trim();
     const status = searchParams.get("status")?.trim();
@@ -19,9 +28,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      query = query.or(
-        `nome.ilike.%${search}%,email.ilike.%${search}%,apartamento.ilike.%${search}%,torre.ilike.%${search}%`
-      );
+      const sanitizedSearch = search.replace(/[,()"]/g, "").trim();
+      if (sanitizedSearch) {
+        query = query.or(
+          `nome.ilike.%${sanitizedSearch}%,email.ilike.%${sanitizedSearch}%,apartamento.ilike.%${sanitizedSearch}%,torre.ilike.%${sanitizedSearch}%`
+        );
+      }
     }
 
     const { data: moradores, error } = await query;
@@ -46,6 +58,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getCurrentSession();
+    if (!session || session.role !== "funcionario") {
+      return NextResponse.json(
+        {
+          error:
+            "Apenas funcionários da administração podem cadastrar novos moradores.",
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const parsed = moradorFormSchema.safeParse(body);
 
@@ -69,7 +92,10 @@ export async function POST(request: NextRequest) {
 
     if (existente) {
       return NextResponse.json(
-        { error: "Já existe um morador cadastrado com este e-mail no condomínio." },
+        {
+          error:
+            "Já existe um morador cadastrado com este e-mail no condomínio.",
+        },
         { status: 409 }
       );
     }
@@ -108,4 +134,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

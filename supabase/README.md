@@ -24,19 +24,25 @@ Todos os scripts de banco de dados do Sistema de Ocorrências estão organizados
    - Habilitação de Row Level Security (RLS) em todas as tabelas
    - Políticas de acesso e restrições (moradores não alteram status; apenas funcionários moderam)
 
-5. **[`05_seed.sql`](file:///c:/Users/Sanatiel/meus_projetos/condominio-app/supabase/05_seed.sql)** *(Opcional para ambiente de desenvolvimento/teste)*
+5. **[`05_seed.sql`](file:///c:/Users/Sanatiel/meus_projetos/condominio-app/supabase/05_seed.sql)** _(Opcional para ambiente de desenvolvimento/teste)_
    - Moradores de demonstração (`carlos.silva@aurora.com`, `mariana.costa@aurora.com`, `roberto.almeida@aurora.com` e 1 inativo para testar bloqueio)
    - Ocorrências de exemplo com diferentes status
    - Comentários de exemplo na timeline
+
+6. **[`06_add_deleted_at_to_comentarios.sql`](file:///c:/Users/Sanatiel/meus_projetos/condominio-app/supabase/06_add_deleted_at_to_comentarios.sql)**
+   - Adiciona coluna `deleted_at` para soft delete na tabela `comentarios`
+   - Índice parcial `idx_comentarios_ocorrencia_deleted`
 
 ---
 
 ## Como Executar
 
 ### Opção 1: Via Supabase Dashboard (SQL Editor)
+
 Copie o conteúdo de cada arquivo na ordem (01 até 05) e execute no **SQL Editor** do projeto Supabase.
 
 ### Opção 2: Via Supabase CLI
+
 ```bash
 supabase db push
 # ou executar sequencialmente
@@ -46,4 +52,3 @@ psql -h <host> -U postgres -d postgres -f supabase/03_storage.sql
 psql -h <host> -U postgres -d postgres -f supabase/04_rls_policies.sql
 psql -h <host> -U postgres -d postgres -f supabase/05_seed.sql
 ```
-

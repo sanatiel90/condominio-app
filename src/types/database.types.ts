@@ -1,19 +1,10 @@
 export type UserRole = "morador" | "funcionario";
 export type StatusMorador = "ativo" | "inativo";
 export type CategoriaOcorrencia =
-  | "Barulho"
-  | "Manutenção"
-  | "Segurança"
-  | "Limpeza"
-  | "Convivência"
-  | "Outros";
+  "Barulho" | "Manutenção" | "Segurança" | "Limpeza" | "Convivência" | "Outros";
 
 export type StatusOcorrencia =
-  | "Aberta"
-  | "Em Análise"
-  | "Em Andamento"
-  | "Resolvida"
-  | "Cancelada";
+  "Aberta" | "Em Análise" | "Em Andamento" | "Resolvida" | "Cancelada";
 
 export interface Funcionario {
   id: string;
@@ -64,6 +55,7 @@ export interface Comentario {
   nome_autor: string;
   unidade_autor: string | null;
   created_at: string;
+  deleted_at?: string | null;
 }
 
 export interface HistoricoStatus {
@@ -94,4 +86,3 @@ export interface FuncionarioSession {
 }
 
 export type CurrentSession = MoradorSession | FuncionarioSession;
-

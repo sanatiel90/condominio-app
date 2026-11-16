@@ -26,9 +26,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (busca) {
-      query = query.or(
-        `titulo.ilike.%${busca}%,local.ilike.%${busca}%,descricao.ilike.%${busca}%`
-      );
+      const sanitizedBusca = busca.replace(/[,()"]/g, "").trim();
+      if (sanitizedBusca) {
+        query = query.or(
+          `titulo.ilike.%${sanitizedBusca}%,local.ilike.%${sanitizedBusca}%,descricao.ilike.%${sanitizedBusca}%`
+        );
+      }
     }
 
     const { data: ocorrencias, error } = await query;
@@ -63,7 +66,10 @@ export async function POST(request: NextRequest) {
     const session = await getCurrentSession();
     if (!session) {
       return NextResponse.json(
-        { error: "Acesso não autorizado. Faça login para registrar uma ocorrência." },
+        {
+          error:
+            "Acesso não autorizado. Faça login para registrar uma ocorrência.",
+        },
         { status: 401 }
       );
     }
@@ -128,4 +134,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

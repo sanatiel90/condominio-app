@@ -28,7 +28,7 @@ function OcorrenciaDetalhesContent() {
   const router = useRouter();
   const id = (params?.id as string) || "";
 
-  const { isFuncionario } = useSession();
+  const { isFuncionario, user } = useSession();
   const [dialogStatusAberto, setDialogStatusAberto] = useState(false);
 
   const {
@@ -38,6 +38,7 @@ function OcorrenciaDetalhesContent() {
     comentarios,
     isLoadingComentarios,
     addComentario,
+    deleteComentario,
     updateStatus,
   } = useOcorrenciaDetalhe(id);
 
@@ -207,6 +208,11 @@ function OcorrenciaDetalhesContent() {
           <ComentariosThread
             comentarios={comentarios}
             onAddComentario={(conteudo) => addComentario.mutateAsync(conteudo)}
+            onDeleteComentario={(comentarioId) =>
+              deleteComentario.mutateAsync(comentarioId)
+            }
+            currentUserId={user?.id}
+            statusOcorrencia={ocorrencia.status}
             isLoading={isLoadingComentarios}
           />
         </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { moradorFormSchema } from "@/lib/validations/morador.schema";
+import { getCurrentSession } from "@/lib/auth/session-guard";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function PATCH(
@@ -7,6 +8,17 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getCurrentSession();
+    if (!session || session.role !== "funcionario") {
+      return NextResponse.json(
+        {
+          error:
+            "Apenas funcionários da administração podem alterar dados de moradores.",
+        },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
     const body = await request.json();
     const parsed = moradorFormSchema.partial().safeParse(body);
@@ -32,7 +44,10 @@ export async function PATCH(
 
       if (existente) {
         return NextResponse.json(
-          { error: "Já existe outro morador utilizando este endereço de e-mail." },
+          {
+            error:
+              "Já existe outro morador utilizando este endereço de e-mail.",
+          },
           { status: 409 }
         );
       }
@@ -69,4 +84,3 @@ export async function PATCH(
     );
   }
 }
-

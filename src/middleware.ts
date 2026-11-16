@@ -4,7 +4,17 @@ import { jwtVerify } from "jose/jwt/verify";
 const MORADOR_COOKIE_NAME = "condo_morador_session";
 
 function getSecretKey(): Uint8Array {
-  const secret = process.env.MORADOR_SESSION_SECRET || "chave-secreta-padrao-condominio-aurora-2026-min-32-chars";
+  const secret = process.env.MORADOR_SESSION_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "Configuração de segurança crítica ausente: MORADOR_SESSION_SECRET deve ser configurado em ambiente de produção."
+      );
+    }
+    return new TextEncoder().encode(
+      "chave-secreta-desenvolvimento-condominio-aurora-min-32-chars"
+    );
+  }
   return new TextEncoder().encode(secret);
 }
 
@@ -97,4 +107,3 @@ export const config = {
     "/login",
   ],
 };
-
