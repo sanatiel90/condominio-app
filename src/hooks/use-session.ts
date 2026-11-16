@@ -9,14 +9,23 @@ export function useSession() {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  const { data, isLoading, error } = useQuery<{ user: CurrentSession | null }>({
+  const { data, isLoading, error, refetch } = useQuery<{
+    user: CurrentSession | null;
+  }>({
     queryKey: ["session"],
     queryFn: async () => {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      });
       if (!res.ok) return { user: null };
       return res.json();
     },
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const logoutMutation = useMutation({
@@ -25,6 +34,7 @@ export function useSession() {
     },
     onSuccess: () => {
       queryClient.setQueryData(["session"], { user: null });
+      queryClient.clear();
       toast.success("Sessão encerrada com sucesso.");
       router.push("/login");
       router.refresh();
@@ -37,8 +47,8 @@ export function useSession() {
     isFuncionario: data?.user?.role === "funcionario",
     isLoading,
     error,
+    refetch,
     logout: () => logoutMutation.mutate(),
     isLoggingOut: logoutMutation.isPending,
   };
 }
-

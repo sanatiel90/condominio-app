@@ -3,13 +3,13 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, PlusCircle, LogOut, Shield } from "lucide-react";
+import { Building2, PlusCircle, LogOut, Shield, User } from "lucide-react";
 import { useSession } from "@/hooks/use-session";
 import { cn } from "@/lib/utils";
 
 export function CondominioHeader() {
   const pathname = usePathname();
-  const { user, isFuncionario, logout, isLoggingOut } = useSession();
+  const { user, isFuncionario, logout, isLoggingOut, isLoading } = useSession();
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-[#EDF2F7] shadow-2xs">
@@ -55,16 +55,45 @@ export function CondominioHeader() {
 
           <div className="h-4 w-px bg-[#E2E8F0] mx-0.5 sm:mx-1" />
 
+          {/* Identificação do Usuário Logado */}
           <div className="flex items-center gap-2">
-            <div className="hidden md:block text-right">
-              <span className="block text-xs font-semibold text-[#181C1E] truncate max-w-[140px]">
-                {user?.nome || "Morador"}
-              </span>
-              <span className="block text-[10px] text-[#545F72] truncate max-w-[140px]">
-                {user?.role === "morador"
-                  ? `${user.torre} · Apto ${user.apartamento}`
-                  : "Administração"}
-              </span>
+            <div className="w-8 h-8 rounded-full bg-[#00355F] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+              {isLoading ? (
+                <User className="w-4 h-4 animate-pulse opacity-70" />
+              ) : user?.nome ? (
+                user.nome.charAt(0).toUpperCase()
+              ) : (
+                <User className="w-4 h-4" />
+              )}
+            </div>
+
+            <div className="hidden sm:block text-right">
+              {isLoading ? (
+                <div className="space-y-1 py-0.5">
+                  <div className="h-3 w-16 bg-[#E2E8F0] rounded animate-pulse ml-auto" />
+                  <div className="h-2 w-20 bg-[#E2E8F0] rounded animate-pulse ml-auto" />
+                </div>
+              ) : user ? (
+                <>
+                  <span className="block text-xs font-semibold text-[#181C1E] truncate max-w-[160px]">
+                    {user.nome}
+                  </span>
+                  <span className="block text-[10px] text-[#545F72] truncate max-w-[160px]">
+                    {user.role === "morador"
+                      ? `${user.torre} · Apto ${user.apartamento}`
+                      : user.cargo || "Administração"}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="block text-xs font-semibold text-[#181C1E]">
+                    Morador
+                  </span>
+                  <span className="block text-[10px] text-[#545F72]">
+                    Conectando...
+                  </span>
+                </>
+              )}
             </div>
 
             <button
@@ -82,4 +111,3 @@ export function CondominioHeader() {
     </header>
   );
 }
-

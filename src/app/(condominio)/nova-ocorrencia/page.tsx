@@ -5,7 +5,8 @@ import { OcorrenciaForm } from "@/components/ocorrencias/ocorrencia-form";
 
 export const metadata = {
   title: "Nova Ocorrência — CondoManager",
-  description: "Formulário para registrar uma nova solicitação ou problema no condomínio.",
+  description:
+    "Formulário para registrar uma nova solicitação ou problema no condomínio.",
 };
 
 export default function NovaOcorrenciaPage() {
@@ -24,7 +25,8 @@ export default function NovaOcorrenciaPage() {
             Registrar Ocorrência
           </h1>
           <p className="text-sm text-[#545F72]">
-            Comunique um problema à administração para acompanhamento de toda a comunidade.
+            Comunique um problema à administração para acompanhamento de toda a
+            comunidade.
           </p>
         </div>
       </div>
@@ -33,4 +35,3 @@ export default function NovaOcorrenciaPage() {
     </div>
   );
 }
-

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Users, UserPlus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,17 @@ export default function MoradoresAdminPage() {
   const [busca, setBusca] = useState("");
   const [statusFiltro, setStatusFiltro] = useState("");
   const [dialogAberto, setDialogAberto] = useState(false);
-  const [moradorParaEditar, setMoradorParaEditar] = useState<Morador | null>(null);
+  const [moradorParaEditar, setMoradorParaEditar] = useState<Morador | null>(
+    null
+  );
+
+  // Garante que o estado de busca e dialog comece limpo ao entrar na tela
+  useEffect(() => {
+    setBusca("");
+    setStatusFiltro("");
+    setDialogAberto(false);
+    setMoradorParaEditar(null);
+  }, []);
 
   const { moradores, isLoading, createMorador, updateMorador } = useMoradores({
     busca,
@@ -59,7 +69,8 @@ export default function MoradoresAdminPage() {
             Cadastro e Gestão de Moradores
           </h1>
           <p className="text-sm text-[#545F72] mt-0.5">
-            Gerencie os residentes autorizados a acessar o portal sem senha e abrir ocorrências.
+            Gerencie os residentes autorizados a acessar o portal sem senha e
+            abrir ocorrências.
           </p>
         </div>
 
@@ -113,4 +124,3 @@ export default function MoradoresAdminPage() {
     </div>
   );
 }
-

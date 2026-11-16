@@ -3,13 +3,14 @@
 import React, { useState, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Calendar, 
-  User, 
-  Settings2, 
-  AlertCircle 
+import {
+  ArrowLeft,
+  MapPin,
+  Calendar,
+  User,
+  Settings2,
+  AlertCircle,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -44,7 +45,9 @@ function OcorrenciaDetalhesContent() {
     return (
       <div className="max-w-3xl mx-auto py-12 text-center">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0F4C81] border-t-transparent" />
-        <p className="mt-3 text-sm text-[#545F72]">Carregando detalhes da ocorrência...</p>
+        <p className="mt-3 text-sm text-[#545F72]">
+          Carregando detalhes da ocorrência...
+        </p>
       </div>
     );
   }
@@ -74,7 +77,7 @@ function OcorrenciaDetalhesContent() {
 
   const handleConfirmStatus = async (
     novoStatus: StatusOcorrencia,
-    observacao?: string
+    observacao: string
   ) => {
     await updateStatus.mutateAsync({ status: novoStatus, observacao });
   };
@@ -104,6 +107,39 @@ function OcorrenciaDetalhesContent() {
         )}
       </div>
 
+      {/* Painel Administrativo de Status em Destaque para Funcionários */}
+      {isFuncionario && (
+        <div className="p-4 sm:p-5 rounded-xl bg-[#00355F]/5 border border-[#00355F]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#00355F] text-white flex items-center justify-center shrink-0 shadow-xs">
+              <ShieldCheck className="w-5 h-5 text-sky-300" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold text-[#00355F] uppercase tracking-wider">
+                  Controle da Administração
+                </span>
+                <span className="text-xs text-[#545F72]">· Status atual:</span>
+                <StatusBadge status={ocorrencia.status} />
+              </div>
+              <p className="text-xs text-[#545F72] mt-0.5 leading-relaxed">
+                Altere o ciclo de atendimento deste chamado (Em Análise, Em
+                Andamento, Resolvida ou Cancelada) e forneça o parecer oficial
+                que será publicado na timeline.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            onClick={() => setDialogStatusAberto(true)}
+            className="gap-2 shrink-0 bg-[#00355F] hover:bg-[#0F4C81] text-xs font-semibold whitespace-nowrap"
+          >
+            <Settings2 className="w-4 h-4" />
+            Alterar Status / Concluir
+          </Button>
+        </div>
+      )}
+
       {/* Card Principal da Ocorrência */}
       <div className="bg-white rounded-xl border border-[#EDF2F7] shadow-xs p-6 sm:p-8 space-y-6">
         {/* Cabeçalho */}
@@ -126,7 +162,9 @@ function OcorrenciaDetalhesContent() {
           <div className="flex flex-wrap items-center gap-4 text-xs text-[#545F72] pt-1">
             <div className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-[#0F4C81]" />
-              <span className="font-medium text-[#181C1E]">{ocorrencia.local}</span>
+              <span className="font-medium text-[#181C1E]">
+                {ocorrencia.local}
+              </span>
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -160,10 +198,7 @@ function OcorrenciaDetalhesContent() {
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#545F72]">
               Foto Comprobatória Anexada
             </h2>
-            <ImageLightbox
-              src={ocorrencia.foto_url}
-              alt={ocorrencia.titulo}
-            />
+            <ImageLightbox src={ocorrencia.foto_url} alt={ocorrencia.titulo} />
           </div>
         )}
 

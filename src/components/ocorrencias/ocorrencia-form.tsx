@@ -1,44 +1,54 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  UploadCloud, 
-  X, 
-  Loader2, 
-  CheckCircle2, 
-  AlertCircle, 
-  MapPin, 
-  FileText, 
-  Tag 
+import {
+  UploadCloud,
+  X,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  MapPin,
+  FileText,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  CATEGORIAS_OCORRENCIA, 
-  OcorrenciaFormInput 
+import {
+  CATEGORIAS_OCORRENCIA,
+  OcorrenciaFormInput,
 } from "@/lib/validations/ocorrencia.schema";
 import { useOcorrencias } from "@/hooks/use-ocorrencias";
 import { toast } from "sonner";
+
+const initialFormState: OcorrenciaFormInput = {
+  titulo: "",
+  categoria: "Manutenção",
+  local: "",
+  descricao: "",
+  foto_url: null,
+};
 
 export function OcorrenciaForm() {
   const router = useRouter();
   const { createOcorrencia } = useOcorrencias();
 
-  const [formData, setFormData] = useState<OcorrenciaFormInput>({
-    titulo: "",
-    categoria: "Manutenção",
-    local: "",
-    descricao: "",
-    foto_url: null,
-  });
-
+  const [formData, setFormData] =
+    useState<OcorrenciaFormInput>(initialFormState);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Garante que o formulário sempre inicie completamente limpo
+  useEffect(() => {
+    setFormData(initialFormState);
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setErrorMessage(null);
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,7 +82,9 @@ export function OcorrenciaForm() {
 
     // Validações locais
     if (!formData.titulo.trim() || formData.titulo.trim().length < 5) {
-      setErrorMessage("O título da ocorrência deve conter pelo menos 5 caracteres.");
+      setErrorMessage(
+        "O título da ocorrência deve conter pelo menos 5 caracteres."
+      );
       return;
     }
     if (!formData.local.trim() || formData.local.trim().length < 3) {
@@ -80,7 +92,9 @@ export function OcorrenciaForm() {
       return;
     }
     if (!formData.descricao.trim() || formData.descricao.trim().length < 10) {
-      setErrorMessage("A descrição detalhada deve conter no mínimo 10 caracteres.");
+      setErrorMessage(
+        "A descrição detalhada deve conter no mínimo 10 caracteres."
+      );
       return;
     }
 
@@ -111,10 +125,17 @@ export function OcorrenciaForm() {
         foto_url: uploadedPhotoUrl,
       });
 
+      // Limpa os campos do formulário para não manter o valor se o usuário voltar para esta tela
+      setFormData(initialFormState);
+      handleRemoveFile();
+      setErrorMessage(null);
+
       router.push("/ocorrencias");
       router.refresh();
     } catch (err: any) {
-      setErrorMessage(err.message || "Erro ao registrar a ocorrência. Tente novamente.");
+      setErrorMessage(
+        err.message || "Erro ao registrar a ocorrência. Tente novamente."
+      );
     } finally {
       setIsUploading(false);
     }
@@ -130,7 +151,7 @@ export function OcorrenciaForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
           {/* Título */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold uppercase tracking-wider text-[#545F72]">
@@ -138,10 +159,13 @@ export function OcorrenciaForm() {
             </label>
             <Input
               value={formData.titulo}
-              onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, titulo: e.target.value })
+              }
               placeholder="Ex.: Lâmpada queimada no hall do 3º andar"
               maxLength={100}
               disabled={isUploading}
+              autoComplete="off"
               required
             />
             <p className="text-[11px] text-[#94A3B8]">
@@ -183,9 +207,12 @@ export function OcorrenciaForm() {
               </label>
               <Input
                 value={formData.local}
-                onChange={(e) => setFormData({ ...formData, local: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, local: e.target.value })
+                }
                 placeholder="Ex.: Torre B - Elevador Social"
                 disabled={isUploading}
+                autoComplete="off"
                 required
               />
             </div>
@@ -283,4 +310,3 @@ export function OcorrenciaForm() {
     </Card>
   );
 }
-

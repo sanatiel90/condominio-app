@@ -4,13 +4,7 @@ import { createAdminClient } from "../supabase/admin";
 import { CurrentSession } from "@/types/database.types";
 
 export async function getCurrentSession(): Promise<CurrentSession | null> {
-  // 1. Verifica se há sessão de morador
-  const morador = await getMoradorSession();
-  if (morador) {
-    return morador;
-  }
-
-  // 2. Verifica se há sessão do Supabase Auth (funcionário)
+  // 1. Verifica primeiro se há sessão corporativa do Supabase Auth (funcionário/administrador)
   try {
     const supabase = await createClient();
     const {
@@ -23,7 +17,7 @@ export async function getCurrentSession(): Promise<CurrentSession | null> {
         .from("funcionarios")
         .select("id, nome, email, cargo")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (funcionario) {
         return {
@@ -33,12 +27,47 @@ export async function getCurrentSession(): Promise<CurrentSession | null> {
           cargo: funcionario.cargo || "Administração",
           role: "funcionario",
         };
+      } else {
+        // Auto-provisiona registro na tabela funcionarios caso o usuário exista no Supabase Auth
+        const nomeBruto =
+          user.user_metadata?.nome ||
+          user.email.split("@")[0] ||
+          "Administrador";
+        const nome =
+          typeof nomeBruto === "string"
+            ? nomeBruto.replace(/[._-]/g, " ")
+            : "Administrador";
+        const cargo = (user.user_metadata?.cargo as string) || "Administração";
+
+        try {
+          await adminClient.from("funcionarios").upsert({
+            id: user.id,
+            nome,
+            email: user.email,
+            cargo,
+          });
+        } catch (upsertErr) {
+          console.error("Erro ao provisionar funcionário:", upsertErr);
+        }
+
+        return {
+          id: user.id,
+          nome,
+          email: user.email,
+          cargo,
+          role: "funcionario",
+        };
       }
     }
   } catch {
     // Supabase Auth não configurado ou sessão ausente
   }
 
+  // 2. Se não houver funcionário autenticado no Supabase Auth, verifica a sessão do morador
+  const morador = await getMoradorSession();
+  if (morador) {
+    return morador;
+  }
+
   return null;
 }
-

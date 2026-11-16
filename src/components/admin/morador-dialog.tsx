@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Morador } from "@/types/database.types";
@@ -16,6 +22,15 @@ interface MoradorDialogProps {
   isLoading?: boolean;
 }
 
+const emptyMoradorForm: MoradorFormInput = {
+  nome: "",
+  email: "",
+  torre: "",
+  apartamento: "",
+  telefone: "",
+  status: "ativo",
+};
+
 export function MoradorDialog({
   open,
   onOpenChange,
@@ -23,38 +38,37 @@ export function MoradorDialog({
   onSubmit,
   isLoading,
 }: MoradorDialogProps) {
-  const [formData, setFormData] = useState<MoradorFormInput>({
-    nome: "",
-    email: "",
-    torre: "",
-    apartamento: "",
-    telefone: "",
-    status: "ativo",
-  });
+  const [formData, setFormData] = useState<MoradorFormInput>(emptyMoradorForm);
   const [error, setError] = useState<string | null>(null);
 
+  // Sempre que o modal abrir ou o morador para editar mudar, sincroniza o formulário
   useEffect(() => {
-    if (moradorParaEditar) {
-      setFormData({
-        nome: moradorParaEditar.nome,
-        email: moradorParaEditar.email,
-        torre: moradorParaEditar.torre,
-        apartamento: moradorParaEditar.apartamento,
-        telefone: moradorParaEditar.telefone,
-        status: moradorParaEditar.status,
-      });
+    if (open) {
+      if (moradorParaEditar) {
+        setFormData({
+          nome: moradorParaEditar.nome,
+          email: moradorParaEditar.email,
+          torre: moradorParaEditar.torre,
+          apartamento: moradorParaEditar.apartamento,
+          telefone: moradorParaEditar.telefone,
+          status: moradorParaEditar.status,
+        });
+      } else {
+        setFormData(emptyMoradorForm);
+      }
+      setError(null);
     } else {
-      setFormData({
-        nome: "",
-        email: "",
-        torre: "",
-        apartamento: "",
-        telefone: "",
-        status: "ativo",
-      });
+      // Ao fechar, limpa os campos para evitar que persistam na próxima abertura
+      setFormData(emptyMoradorForm);
+      setError(null);
     }
-    setError(null);
   }, [moradorParaEditar, open]);
+
+  const handleClose = () => {
+    setFormData(emptyMoradorForm);
+    setError(null);
+    onOpenChange(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +97,8 @@ export function MoradorDialog({
 
     try {
       await onSubmit(formData);
+      setFormData(emptyMoradorForm);
+      setError(null);
       onOpenChange(false);
     } catch (err: any) {
       setError(err.message || "Erro ao salvar dados do morador.");
@@ -90,7 +106,7 @@ export function MoradorDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogHeader>
         <DialogTitle>
           {moradorParaEditar ? "Editar Morador" : "Cadastrar Novo Morador"}
@@ -102,7 +118,7 @@ export function MoradorDialog({
         </DialogDescription>
       </DialogHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
         {error && (
           <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs">
             {error}
@@ -118,6 +134,7 @@ export function MoradorDialog({
             onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
             placeholder="Ex.: Mariana Silva"
             disabled={isLoading}
+            autoComplete="off"
             required
           />
         </div>
@@ -129,9 +146,12 @@ export function MoradorDialog({
           <Input
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
             placeholder="mariana@exemplo.com"
             disabled={isLoading}
+            autoComplete="off"
             required
           />
           <p className="text-[11px] text-[#94A3B8]">
@@ -146,9 +166,12 @@ export function MoradorDialog({
             </label>
             <Input
               value={formData.torre}
-              onChange={(e) => setFormData({ ...formData, torre: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, torre: e.target.value })
+              }
               placeholder="Ex.: Torre A"
               disabled={isLoading}
+              autoComplete="off"
               required
             />
           </div>
@@ -159,9 +182,12 @@ export function MoradorDialog({
             </label>
             <Input
               value={formData.apartamento}
-              onChange={(e) => setFormData({ ...formData, apartamento: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, apartamento: e.target.value })
+              }
               placeholder="Ex.: 402"
               disabled={isLoading}
+              autoComplete="off"
               required
             />
           </div>
@@ -173,9 +199,12 @@ export function MoradorDialog({
           </label>
           <Input
             value={formData.telefone}
-            onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, telefone: e.target.value })
+            }
             placeholder="(11) 98765-4321"
             disabled={isLoading}
+            autoComplete="off"
             required
           />
         </div>
@@ -204,7 +233,7 @@ export function MoradorDialog({
           <Button
             type="button"
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={handleClose}
             disabled={isLoading}
           >
             Cancelar
@@ -226,4 +255,3 @@ export function MoradorDialog({
     </Dialog>
   );
 }
-

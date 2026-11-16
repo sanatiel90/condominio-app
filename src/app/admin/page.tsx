@@ -2,34 +2,64 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { 
-  ClipboardList, 
-  Clock, 
-  CheckCircle2, 
-  Search, 
-  Eye, 
-  SlidersHorizontal 
+import {
+  ClipboardList,
+  Clock,
+  CheckCircle2,
+  Search,
+  Eye,
+  SlidersHorizontal,
 } from "lucide-react";
 import { KpiCard } from "@/components/admin/kpi-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { CategoryBadge } from "@/components/shared/category-badge";
+import { StatusUpdateDialog } from "@/components/admin/status-update-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useOcorrencias, useAdminMetricas } from "@/hooks/use-ocorrencias";
-import { CATEGORIAS_OCORRENCIA, STATUS_OCORRENCIA } from "@/lib/validations/ocorrencia.schema";
+import {
+  CATEGORIAS_OCORRENCIA,
+  STATUS_OCORRENCIA,
+} from "@/lib/validations/ocorrencia.schema";
 import { formatarData } from "@/lib/utils";
+import { Ocorrencia, StatusOcorrencia } from "@/types/database.types";
 
 export default function AdminDashboardPage() {
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState("");
   const [status, setStatusFiltro] = useState("");
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [ocorrenciaSelecionada, setOcorrenciaSelecionada] =
+    useState<Ocorrencia | null>(null);
 
   const { data: metricas, isLoading: loadingMetricas } = useAdminMetricas();
-  const { ocorrencias, isLoading: loadingOcorrencias } = useOcorrencias({
+  const {
+    ocorrencias,
+    isLoading: loadingOcorrencias,
+    updateOcorrenciaStatus,
+  } = useOcorrencias({
     busca,
     categoria,
     status,
   });
+
+  const handleOpenStatus = (oc: Ocorrencia) => {
+    setOcorrenciaSelecionada(oc);
+    setStatusDialogOpen(true);
+  };
+
+  const handleConfirmStatus = async (
+    novoStatus: StatusOcorrencia,
+    observacao: string
+  ) => {
+    if (!ocorrenciaSelecionada) return;
+    await updateOcorrenciaStatus.mutateAsync({
+      id: ocorrenciaSelecionada.id,
+      status: novoStatus,
+      observacao,
+    });
+    setStatusDialogOpen(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -39,7 +69,8 @@ export default function AdminDashboardPage() {
           Gestão de Ocorrências
         </h1>
         <p className="text-sm text-[#545F72] mt-0.5">
-          Centro de controle administrativo para triagem, acompanhamento e resolução de chamados.
+          Centro de controle administrativo para triagem, acompanhamento e
+          resolução de chamados.
         </p>
       </div>
 
@@ -47,19 +78,19 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard
           label="Total de Ocorrências"
-          value={loadingMetricas ? "..." : metricas?.total ?? 0}
+          value={loadingMetricas ? "..." : (metricas?.total ?? 0)}
           icon={<ClipboardList className="w-5 h-5" />}
           description="Histórico geral do condomínio"
         />
         <KpiCard
           label="Pendentes / Em Análise"
-          value={loadingMetricas ? "..." : metricas?.pendentes ?? 0}
+          value={loadingMetricas ? "..." : (metricas?.pendentes ?? 0)}
           icon={<Clock className="w-5 h-5" />}
           description="Aguardando ação da equipe"
         />
         <KpiCard
           label="Resolvidas (Total)"
-          value={loadingMetricas ? "..." : metricas?.resolvidas ?? 0}
+          value={loadingMetricas ? "..." : (metricas?.resolvidas ?? 0)}
           icon={<CheckCircle2 className="w-5 h-5" />}
           description="Chamados concluídos"
         />
@@ -123,14 +154,20 @@ export default function AdminDashboardPage() {
             <tbody className="divide-y divide-[#EDF2F7] text-sm text-[#181C1E]">
               {loadingOcorrencias ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-sm text-[#545F72]">
+                  <td
+                    colSpan={6}
+                    className="py-12 text-center text-sm text-[#545F72]"
+                  >
                     <div className="inline-block animate-spin rounded-full h-7 w-7 border-4 border-[#0F4C81] border-t-transparent" />
                     <p className="mt-2">Carregando chamados...</p>
                   </td>
                 </tr>
               ) : ocorrencias.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-sm text-[#545F72]">
+                  <td
+                    colSpan={6}
+                    className="py-12 text-center text-sm text-[#545F72]"
+                  >
                     Nenhuma ocorrência encontrada com os filtros selecionados.
                   </td>
                 </tr>
@@ -175,13 +212,24 @@ export default function AdminDashboardPage() {
 
                     {/* Ações */}
                     <td className="py-3.5 px-5 text-right whitespace-nowrap">
-                      <Link
-                        href={`/ocorrencias/${oc.id}`}
-                        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-[#00355F] bg-[#F1F4F6] hover:bg-[#E2E8F0] transition-colors"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        Ver Detalhe
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleOpenStatus(oc)}
+                          className="h-8 px-2.5 text-xs font-semibold text-[#0F4C81] border-[#0F4C81]/30 hover:bg-[#F0F7FF] hover:border-[#0F4C81]"
+                        >
+                          <SlidersHorizontal className="w-3.5 h-3.5 mr-1" />
+                          Alterar Status
+                        </Button>
+                        <Link
+                          href={`/ocorrencias/${oc.id}`}
+                          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-[#00355F] bg-[#F1F4F6] hover:bg-[#E2E8F0] transition-colors"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Ver Detalhe
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -195,7 +243,17 @@ export default function AdminDashboardPage() {
           <span>Mostrando {ocorrencias.length} resultado(s)</span>
         </div>
       </div>
+
+      {/* Modal de Alteração de Status com Justificativa Obrigatória */}
+      {ocorrenciaSelecionada && (
+        <StatusUpdateDialog
+          open={statusDialogOpen}
+          onOpenChange={setStatusDialogOpen}
+          statusAtual={ocorrenciaSelecionada.status}
+          onConfirm={handleConfirmStatus}
+          isLoading={updateOcorrenciaStatus.isPending}
+        />
+      )}
     </div>
   );
 }
-

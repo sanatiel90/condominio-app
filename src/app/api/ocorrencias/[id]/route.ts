@@ -58,7 +58,10 @@ export async function PATCH(
     // Regra estrita: apenas funcionários autenticados podem alterar status
     if (!session || session.role !== "funcionario") {
       return NextResponse.json(
-        { error: "Apenas funcionários da administração possuem permissão para alterar o status." },
+        {
+          error:
+            "Apenas funcionários da administração possuem permissão para alterar o status.",
+        },
         { status: 403 }
       );
     }
@@ -117,7 +120,18 @@ export async function PATCH(
       status_anterior: statusAnterior,
       status_novo: novoStatus,
       funcionario_id: session.id,
-      observacao: observacao || `Status alterado de ${statusAnterior} para ${novoStatus} por ${session.nome}.`,
+      observacao: observacao,
+    });
+
+    // 4. Insere o comentário oficial na thread de comentários da ocorrência
+    const conteudoComentario = `[Status atualizado para "${novoStatus}"]: ${observacao}`;
+    await supabase.from("comentarios").insert({
+      ocorrencia_id: id,
+      conteudo: conteudoComentario,
+      autor_tipo: "funcionario",
+      funcionario_id: session.id,
+      nome_autor: session.nome,
+      unidade_autor: session.cargo || "Administração",
     });
 
     return NextResponse.json({
@@ -181,4 +195,3 @@ export async function DELETE(
     );
   }
 }
-

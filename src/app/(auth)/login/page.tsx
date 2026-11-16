@@ -1,20 +1,42 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, ArrowRight, ShieldCheck, Mail, AlertCircle, Loader2 } from "lucide-react";
+import {
+  Building2,
+  ArrowRight,
+  ShieldCheck,
+  Mail,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
 
 function MoradorLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Garante que o input comece sempre limpo ao carregar ou voltar para a tela de login
+  useEffect(() => {
+    setEmail("");
+    setErrorMessage(null);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +63,15 @@ function MoradorLoginForm() {
         return;
       }
 
+      // Atualiza o estado da sessão imediatamente no cache do TanStack Query
+      queryClient.setQueryData(["session"], { user: data.morador });
+      await queryClient.invalidateQueries({ queryKey: ["session"] });
+
       toast.success(`Bem-vindo(a), ${data.morador.nome}!`);
+
+      // Limpa o campo de e-mail para não persistir se houver logout posterior
+      setEmail("");
+
       const from = searchParams.get("from");
       router.push(from || "/ocorrencias");
       router.refresh();
@@ -69,7 +99,7 @@ function MoradorLoginForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
           <div className="space-y-1.5">
             <label
               htmlFor="email"
@@ -87,7 +117,7 @@ function MoradorLoginForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
                 className="pl-10"
-                autoComplete="email"
+                autoComplete="off"
                 autoFocus
               />
             </div>
@@ -143,11 +173,13 @@ export default function MoradorLoginPage() {
         </div>
 
         {/* Card de Login dentro de Suspense */}
-        <Suspense fallback={
-          <div className="bg-white rounded-xl border border-[#EDF2F7] p-8 text-center text-sm text-[#545F72]">
-            Carregando acesso...
-          </div>
-        }>
+        <Suspense
+          fallback={
+            <div className="bg-white rounded-xl border border-[#EDF2F7] p-8 text-center text-sm text-[#545F72]">
+              Carregando acesso...
+            </div>
+          }
+        >
           <MoradorLoginForm />
         </Suspense>
 
@@ -157,7 +189,10 @@ export default function MoradorLoginPage() {
             href="/admin/login"
             className="text-xs font-medium text-[#545F72] hover:text-[#00355F] transition-colors inline-flex items-center gap-1"
           >
-            É funcionário da administração? <span className="underline font-semibold text-[#0F4C81]">Acesse o painel restrito</span>
+            É funcionário da administração?{" "}
+            <span className="underline font-semibold text-[#0F4C81]">
+              Acesse o painel restrito
+            </span>
           </Link>
         </div>
       </div>
