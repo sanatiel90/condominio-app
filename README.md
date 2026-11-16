@@ -107,10 +107,3 @@ Ao aplicar o arquivo `supabase/05_seed.sql`, os seguintes acessos estarão dispo
   - Usuário criado no Supabase Auth com permissão de administrador
 
 ---
-
-## 📚 Documentação Complementar
-
-- [Visão Geral do Projeto (docs/project-overview.md)](./docs/project-overview.md) — Objetivos, personas e fluxos de negócio
-- [Arquitetura & Decisões Técnicas (docs/architecture.md)](./docs/architecture.md) — Estrutura de pastas, endpoints de API e modelo de dados
-- [Especificação de Requisitos (docs/prd/sistema-ocorrencias-condominio.md)](./docs/prd/sistema-ocorrencias-condominio.md) — PRD completo do sistema
-- [Plano de Implementação (docs/plano-implementacao.md)](./docs/plano-implementacao.md) — Fases de desenvolvimento
